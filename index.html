@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Menorca Cash | MEDBASHA</title>
+    <link rel="icon" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        :root {
+            --bg: #1a1a1a; --card: #262626; --text: #f0f0f0;
+            --blue: #3498db; --orange: #e67e22; --grey: #95a5a6;
+            --purple: #9b59b6; --red: #e74c3c; --green: #2ecc71;
+            --yellow: #f1c40f;
+        }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        input { -webkit-user-select: auto; user-select: auto; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 12px; overflow-x: hidden; user-select: none; }
+        button:focus-visible, input:focus-visible, .dashboard:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+        .dashboard { background: var(--card); padding: 20px; border-radius: 20px; text-align: center; margin-bottom: 15px; border-bottom: 3px solid var(--green); cursor: pointer; border-top: none; border-left: none; border-right: none; width: 100%; color: inherit; display: block; }
+        .app-name { font-size: 0.7em; letter-spacing: 2px; color: var(--grey); text-transform: uppercase; margin-bottom: 5px; }
+        .balance { font-size: 2.5em; font-weight: bold; margin: 5px 0; color: var(--green); transition: 0.3s; }
+        .ahorro-badge { font-size: 0.65em; color: var(--orange); font-weight: bold; background: rgba(230, 126, 34, 0.1); padding: 4px 10px; border-radius: 8px; display: inline-block; margin-top: 5px; }
+        .section-title { font-size: 0.75em; color: #666; text-transform: uppercase; margin: 18px 0 8px 5px; letter-spacing: 1px; font-weight: bold; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn { background: var(--card); border: none; color: white; padding: 16px; border-radius: 12px; font-size: 0.9em; text-align: left; transition: 0.2s; border-left: 4px solid transparent; cursor: pointer; }
+        .btn:active { background: #333; transform: scale(0.96); }
+        .l-diario { border-left-color: var(--blue); } .l-online { border-left-color: var(--orange); }
+        .l-motor { border-left-color: var(--grey); } .l-familia { border-left-color: var(--red); }
+        .l-niños { border-left-color: var(--yellow); }
+        .big-card { padding: 25px !important; font-size: 1.1em !important; font-weight: bold; text-align: center; border-left: none !important; border-bottom: 4px solid transparent; }
+        .big-card-blue { background: rgba(52, 152, 219, 0.2) !important; border-bottom-color: var(--blue); }
+        .big-card-orange { background: rgba(230, 126, 34, 0.2) !important; border-bottom-color: var(--orange); }
+        input#monto { width: 100%; background: transparent; border: none; border-bottom: 2px solid #333; color: white; font-size: 2.2em; text-align: center; padding: 10px; margin-bottom: 10px; outline: none; transition: 0.2s; }
+        input#monto:focus { border-bottom-color: var(--blue); }
+        input#monto.error { border-bottom-color: var(--red); animation: shake 0.3s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+        .full-screen { position: fixed; top: 0; left: 100%; width: 100%; height: 100%; background: var(--bg); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100; padding: 25px; overflow-y: auto; }
+        .full-screen.active { left: 0; }
+        .header-alt { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .header-title-hist { font-weight: bold; color: var(--green); }
+        .header-title-conf { font-weight: bold; color: var(--orange); }
+        .btn-back { background: var(--card); border: none; color: white; padding: 12px 18px; border-radius: 10px; font-size: 0.8em; cursor: pointer; }
+        .historial-resumen { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 20px; border-left: 4px solid var(--blue); }
+        .historial-resumen div { font-size: 0.8em; color: var(--grey); margin-bottom: 5px; }
+        .historial-resumen span { font-size: 1.5em; font-weight: bold; color: white; }
+        .config-label { font-size: 0.7em; color: var(--grey); display: block; margin-bottom: 5px; }
+        .config-input { width: 100%; background: var(--card); border: 1px solid #444; color: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; font-size: 1.1em; }
+        .btn-reiniciar { width: 100%; background: var(--green); border: none; border-radius: 12px; font-weight: bold; color: black; font-size: 1em; padding: 15px; margin-top: 10px; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 15px 0; border-bottom: 1px solid #333; font-size: 0.9em; vertical-align: middle; }
+        .hist-fecha { font-size: 0.7em; color: #777; margin-top: 4px; }
+        .hist-concepto { color: #ccc; }
+        .hist-monto { text-align: right; font-weight: bold; font-size: 1.1em; }
+        .hist-ingreso { color: var(--green); }
+        .hist-gasto { color: var(--red); }
+        .trash-btn { background: rgba(231, 76, 60, 0.1); border: none; border-radius: 8px; width: 35px; height: 35px; margin-left: 10px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--red); font-size: 1.1em; transition: 0.2s; }
+        .trash-btn:active { background: var(--red); color: white; }
+        .firma-discreta { text-align: center; color: #2a2a2a; font-size: 0.55em; margin: 30px 0; letter-spacing: 3px; font-weight: bold; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 200; opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px; backdrop-filter: blur(3px); }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-box { background: var(--card); padding: 25px; border-radius: 16px; width: 100%; max-width: 320px; text-align: center; border-bottom: 4px solid var(--blue); }
+        .modal-text { margin-bottom: 25px; font-size: 1.1em; color: white; }
+        .modal-actions { display: flex; gap: 10px; }
+        .modal-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
+        .modal-btn-cancel { background: #444; color: white; }
+        .modal-btn-confirm { background: var(--blue); color: white; }
+    </style>
+</head>
+<body>
+    <div id="app-content">
+        <button class="dashboard" onclick="App.abrirHistorial()">
+            <div class="app-name">Menorca Cash</div>
+            <div class="balance" id="total">0,00 €</div>
+            <div class="ahorro-badge" id="tag-ahorro">OBJETIVO AHORRO (10%): 0.00 €</div>
+        </button>
+        <input type="text" id="monto" placeholder="0.00" inputmode="decimal" autocomplete="off">
+        <div class="section-title">Día a día y Caprichos</div>
+        <div class="grid">
+            <button class="btn l-diario" onclick="App.addGasto('☕ Café/Desayuno', 0)">☕ Café</button>
+            <button class="btn l-diario" onclick="App.addGasto('🥖 Comida/Cena', 1)">🥖 Comida</button>
+            <button class="btn l-diario" onclick="App.addGasto('🛒 Súper', 2)">🛒 Súper</button>
+            <button class="btn l-online" onclick="App.addGasto('📦 Capricho', 3)">📦 Capricho</button>
+        </div>
+        <div class="section-title">Vehículos y Familia</div>
+        <div class="grid">
+            <button class="btn l-motor" onclick="App.addGasto('⛽ Gasolina', 4)">⛽ Gasolina</button>
+            <button class="btn l-niños" onclick="App.addGasto('👦 Niños', 5)">👦 Niños</button>
+        </div>
+        <div class="section-title">Gestión y Datos</div>
+        <div class="grid">
+            <button class="btn big-card big-card-blue" onclick="App.abrirHistorial()">💙 MOVIMIENTOS</button>
+            <button class="btn big-card big-card-orange" onclick="App.abrirConfig()">🧡 AJUSTES MES</button>
+        </div>
+        <div class="firma-discreta">MEDBASHA DIGITAL DESIGN</div>
+        <div style="height: 40px;"></div>
+    </div>
+    <div id="pantalla-historial" class="full-screen">
+        <div class="header-alt">
+            <div class="header-title-hist">MOVIMIENTOS</div>
+            <button class="btn-back" onclick="App.cerrarPantallas()">CERRAR</button>
+        </div>
+        <div class="historial-resumen">
+            <div>TOTAL GASTADO MES ACTUAL</div>
+            <span id="historial-suma-gastos">0.00 €</span>
+        </div>
+        <table id="lista-gastos"><tbody></tbody></table>
+    </div>
+    <div id="pantalla-config" class="full-screen">
+        <div class="header-alt">
+            <div class="header-title-conf">AJUSTES MES</div>
+            <button class="btn-back" onclick="App.cerrarPantallas()">VOLVER</button>
+        </div>
+        <label class="config-label">SUELDO MENSUAL (€)</label>
+        <input type="text" inputmode="decimal" id="input-sueldo" class="config-input">
+        <label class="config-label">GASTOS FIJOS / CRÉDITOS (€)</label>
+        <input type="text" inputmode="decimal" id="input-fijos" class="config-input">
+        <button class="btn-reiniciar" onclick="App.iniciarNuevoMes()">REINICIAR MES</button>
+    </div>
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-text" id="modal-msg">¿Estás seguro?</div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" id="modal-cancel">Cancelar</button>
+                <button class="modal-btn modal-btn-confirm" id="modal-confirm">Aceptar</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+        const App = (function() {
+            let balance = parseFloat(localStorage.getItem('balance_mb')) || 0;
+            let sueldoMes = parseFloat(localStorage.getItem('conf_sueldo')) || 0;
+            let datosGrafico = JSON.parse(localStorage.getItem('grafico_mb')) || [0, 0, 0, 0, 0, 0];
+            let historial = JSON.parse(localStorage.getItem('historial_mb')) || [];
+            function init() { renderApp(); }
+            function formatFecha(isoString) {
+                if(!isoString) return '';
+                const date = new Date(isoString);
+                return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }) + ' ' + date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            }
+            function mostrarModal(mensaje, mostrarCancelar = true) {
+                return new Promise((resolve) => {
+                    const modal = document.getElementById('custom-modal');
+                    const btnCancel = document.getElementById('modal-cancel');
+                    const btnConfirm = document.getElementById('modal-confirm');
+                    document.getElementById('modal-msg').innerText = mensaje;
+                    btnCancel.style.display = mostrarCancelar ? 'block' : 'none';
+                    modal.classList.add('active');
+                    const cleanUp = () => { modal.classList.remove('active'); btnCancel.onclick = null; btnConfirm.onclick = null; };
+                    btnCancel.onclick = () => { cleanUp(); resolve(false); };
+                    btnConfirm.onclick = () => { cleanUp(); resolve(true); };
+                });
+            }
+            function procesarInputNumerico(valorTexto) { return parseFloat(valorTexto.replace(',', '.')); }
+            function renderApp() {
+                document.getElementById('total').innerText = balance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+                document.getElementById('tag-ahorro').innerText = "OBJETIVO AHORRO (10%): " + (sueldoMes * 0.10).toFixed(2) + " €";
+                const tbody = document.querySelector('#lista-gastos tbody');
+                tbody.innerHTML = ""; 
+                let sumaGastosActual = 0;
+                historial.forEach((item, i) => {
+                    const esIngreso = item.monto < 0;
+                    if(!esIngreso) sumaGastosActual += item.monto; 
+                    const fila = document.createElement('tr');
+                    const tdInfo = document.createElement('td');
+                    tdInfo.className = 'hist-concepto';
+                    tdInfo.textContent = item.concepto;
+                    const divFecha = document.createElement('div');
+                    divFecha.className = 'hist-fecha';
+                    divFecha.textContent = formatFecha(item.fecha);
+                    tdInfo.appendChild(divFecha);
+                    const tdMonto = document.createElement('td');
+                    tdMonto.className = 'hist-monto ' + (esIngreso ? 'hist-ingreso' : 'hist-gasto');
+                    tdMonto.textContent = (esIngreso ? '+' : '-') + Math.abs(item.monto).toFixed(2) + '€';
+                    const btnBorrar = document.createElement('button');
+                    btnBorrar.className = 'trash-btn';
+                    btnBorrar.innerHTML = '🗑️'; 
+                    btnBorrar.onclick = async () => { if(await mostrarModal(`¿Borrar registro de ${item.concepto}?`)) borrarGasto(i); };
+                    tdMonto.appendChild(btnBorrar);
+                    fila.appendChild(tdInfo);
+                    fila.appendChild(tdMonto);
+                    tbody.appendChild(fila);
+                });
+                document.getElementById('historial-suma-gastos').innerText = sumaGastosActual.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + " €";
+            }
+            function addGasto(concepto, index) {
+                const mInput = document.getElementById('monto');
+                const monto = procesarInputNumerico(mInput.value);
+                if (isNaN(monto) || monto <= 0) {
+                    mInput.classList.add('error');
+                    if (navigator.vibrate) navigator.vibrate([50, 50, 50]); 
+                    setTimeout(() => mInput.classList.remove('error'), 300);
+                    return;
+                }
+                if (navigator.vibrate) navigator.vibrate(40); 
+                balance -= monto;
+                if(index !== null && datosGrafico[index] !== undefined) { datosGrafico[index] += monto; }
+                historial.unshift({ concepto, monto, catIndex: index, fecha: new Date().toISOString() });
+                mInput.value = "";
+                guardarYRefrescar();
+            }
+            async function iniciarNuevoMes() {
+                const s = procesarInputNumerico(document.getElementById('input-sueldo').value) || 0;
+                const f = procesarInputNumerico(document.getElementById('input-fijos').value) || 0;
+                if (s <= 0) { mostrarModal("Por favor, introduce tu sueldo mensual.", false); return; }
+                if(await mostrarModal("¿Estás seguro de reiniciar los datos para el nuevo mes?")) {
+                    const fechaActual = new Date().toISOString();
+                    sueldoMes = s;
+                    balance = s - f;
+                    historial = [
+                        { concepto: "💰 Sueldo", monto: -s, catIndex: null, fecha: fechaActual }, 
+                        { concepto: "💸 Fijos", monto: f, catIndex: null, fecha: fechaActual }
+                    ];
+                    datosGrafico = [0, 0, 0, 0, 0, 0];
+                    localStorage.setItem('conf_sueldo', s);
+                    localStorage.setItem('conf_fijos', f);
+                    guardarYRefrescar();
+                    cerrarPantallas();
+                }
+            }
+            function borrarGasto(i) {
+                const item = historial[i];
+                balance += item.monto;
+                if(item.catIndex !== null && datosGrafico[item.catIndex] !== undefined) {
+                    datosGrafico[item.catIndex] -= item.monto;
+                    if(datosGrafico[item.catIndex] < 0) datosGrafico[item.catIndex] = 0;
+                }
+                historial.splice(i, 1);
+                guardarYRefrescar();
+            }
+            function guardarYRefrescar() {
+                localStorage.setItem('balance_mb', balance);
+                localStorage.setItem('grafico_mb', JSON.stringify(datosGrafico));
+                localStorage.setItem('historial_mb', JSON.stringify(historial));
+                renderApp();
+            }
+            return {
+                init, addGasto, iniciarNuevoMes,
+                abrirHistorial: () => document.getElementById('pantalla-historial').classList.add('active'),
+                abrirConfig: () => { 
+                    document.getElementById('input-sueldo').value = sueldoMes || "";
+                    document.getElementById('input-fijos').value = localStorage.getItem('conf_fijos') || "";
+                    document.getElementById('pantalla-config').classList.add('active'); 
+                },
+                cerrarPantallas: () => document.querySelectorAll('.full-screen').forEach(p => p.classList.remove('active'))
+            };
+        })();
+        document.addEventListener('DOMContentLoaded', App.init);
+    </script>
+</body>
+</html>
